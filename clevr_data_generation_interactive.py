@@ -757,6 +757,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     if __name__ == '__main__':
-        main(args.use_gpu, args.split
+        main(args.use_gpu, args.split,
              args.img_offset, args.max_episodes, args.batch_size)
         
