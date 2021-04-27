@@ -342,7 +342,7 @@ def command_template(num_images,
       --output_image_dir={output_image_dir} \
       --output_scene_dir={output_scene_dir} \
       --output_scene_file={output_scene_file} \
-      --use_gpu={USE_GPU} --render_num_samples=256 --width=480 --height=320 --start_idx={start_idx}'
+      --use_gpu={USE_GPU} --render_num_samples=256 --width=480 --height=320 --start_idx={start_idx} > /dev/null 2>&1'
   return cmd_template
 
 def question_template(input_scene_file,
@@ -736,7 +736,7 @@ def main(img_offset,max_episodes,batch_size):
 
   output = {
       'info': {
-          'split': split,
+          'split': SPLIT,
       },
       'scenes': all_scenes
   }
