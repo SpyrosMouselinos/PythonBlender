@@ -47,11 +47,11 @@ parser = argparse.ArgumentParser()
 # Inputs
 parser.add_argument('--input_scene_file',default='../scenes/CLEVR_rendered_scenes.json',
     help="JSON file containing ground-truth scene information for all images ")
-parser.add_argument('--metadata_file', default='./metadata.json',
+parser.add_argument('--metadata_file', default='./generation/metadata.json',
     help="JSON file containing metadata about functions")
-parser.add_argument('--synonyms_json', default='./synonyms.json',
+parser.add_argument('--synonyms_json', default='./generation/synonyms.json',
     help="JSON file defining synonyms for parameter values")
-parser.add_argument('--template_dir', default='./CLEVR_1.0_templates',
+parser.add_argument('--template_dir', default='.generation/CLEVR_1.0_templates',
     help="Directory containing JSON templates for questions")
 
 # Output

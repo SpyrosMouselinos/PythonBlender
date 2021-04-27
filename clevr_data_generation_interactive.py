@@ -42,8 +42,8 @@ up_to_here = '/'.join(os.path.abspath(__file__).split('/')[:-1])
 blender_version = 'blender2.79'
 output_image_dir = up_to_here + '/images'
 output_scene_dir = up_to_here + '/scenes'
-output_scene_file = up_to_here + '/scenes/CLEVR_{SPLIT}_scenes.json'
-output_question_file = up_to_here + '/questions/CLEVR_{SPLIT}_questions.json'
+output_scene_file = up_to_here + f'/scenes/CLEVR_{SPLIT}_scenes.json'
+output_question_file = up_to_here + f'/questions/CLEVR_{SPLIT}_questions.json'
 """### Create Folders if they do not exist
 ***
 """
@@ -331,7 +331,7 @@ def command_template(num_images,
   back_light_jitter = [str(f) for f in back_light_jitter]
   camera_jitter = [str(f) for f in camera_jitter]
   num_objects = [str(f) for f in num_objects]
-  cmd_template = f'{up_to_here}/generation/blender2.79/blender -noaudio --background --python {up_to_here}/generation/det_render_images.py  > /dev/null 2>&1 -- --num_images={num_images} \
+  cmd_template = f'{up_to_here}/generation/blender2.79/blender -noaudio --background --python {up_to_here}/generation/det_render_images.py -- --num_images={num_images} \
       --key_light_jitter={",".join(key_light_jitter)} \
       --fill_light_jitter={",".join(fill_light_jitter)} \
       --back_light_jitter={",".join(back_light_jitter)} \
