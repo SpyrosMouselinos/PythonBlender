@@ -442,7 +442,7 @@ def render_image(key_light_jitter=[1,2,3,4,5],
 ***
 """
 
-render_image([1],[1],[1],[1],[1],[[None]],[[None]],[[None]],[[None]],[[1.9]],[[2.5]],[[0]],1,'gg',2,False,1)
+render_image([1],[1],[1],[1],[1],[[None]],[[None]],[[None]],[[None]],[[1.9]],[[2.5]],[[0]],1,'gg',0)
 
 """### Let's Make a Question Generator
 ***
@@ -495,13 +495,17 @@ def make_questions(input_scene_file=output_scene_file,
 
 
 class InformedRandomAgent(nn.Module):
-    def __init__(self, padding_number=-10, scenes='/content/gdrive/MyDrive/blender_agents/official_val/CLEVR_val_scenes.json'):
+    def __init__(self, padding_number=-10, scenes=f'{up_to_here}/official_val/CLEVR_val_scenes.json'):
         super(InformedRandomAgent, self).__init__()
         self.padding_number = padding_number
         if scenes is not None:
-            with open(scenes, 'r') as fout:
-                data = json.loads(fout.read())
-            scenes = data['scenes']
+            try:
+                with open(scenes, 'r') as fout:
+                    data = json.loads(fout.read())
+                scenes = data['scenes']
+            except FileNotFoundError:
+                print("Official Validation Scenes not found at: {up_to_here}/official_val/CLEVR_val_scenes.json ...")
+                scenes = None
         self.scenes = scenes
         self.noise_gen = lambda x: x
         return
@@ -517,7 +521,7 @@ class InformedRandomAgent(nn.Module):
         per_image_theta = []
 
         for batch_id in range(object_3d_pos.shape[0]):
-            num_objects = sum((object_3d_pos[batch_id][:, 0] > -10) * 1)
+            num_objects = sum((object_3d_pos[batch_id][:, 0] > padding_number) * 1)
             batch_x = object_3d_pos[batch_id][:, 0][0:num_objects]
             batch_y = object_3d_pos[batch_id][:, 1][0:num_objects]
         
@@ -537,7 +541,7 @@ class InformedRandomAgent(nn.Module):
         per_image_sizes = []
 
         for batch_id in range(object_scms.shape[0]):
-            num_objects = sum((object_scms[batch_id][:, 0] > -10) * 1)
+            num_objects = sum((object_scms[batch_id][:, 0] > padding_number) * 1)
             batch_shapes = object_scms[batch_id][:, 0][0:num_objects]
             batch_colors = object_scms[batch_id][:, 1][0:num_objects]
             batch_materials = object_scms[batch_id][:, 2][0:num_objects]
