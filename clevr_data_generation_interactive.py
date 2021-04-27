@@ -508,7 +508,7 @@ class InformedRandomAgent(nn.Module):
         per_image_theta = []
 
         for batch_id in range(object_3d_pos.shape[0]):
-            num_objects = sum((object_3d_pos[batch_id][:, 0] > padding_number) * 1)
+            num_objects = sum((object_3d_pos[batch_id][:, 0] > self.padding_number) * 1)
             batch_x = object_3d_pos[batch_id][:, 0][0:num_objects]
             batch_y = object_3d_pos[batch_id][:, 1][0:num_objects]
         
@@ -528,7 +528,7 @@ class InformedRandomAgent(nn.Module):
         per_image_sizes = []
 
         for batch_id in range(object_scms.shape[0]):
-            num_objects = sum((object_scms[batch_id][:, 0] > padding_number) * 1)
+            num_objects = sum((object_scms[batch_id][:, 0] > self.padding_number) * 1)
             batch_shapes = object_scms[batch_id][:, 0][0:num_objects]
             batch_colors = object_scms[batch_id][:, 1][0:num_objects]
             batch_materials = object_scms[batch_id][:, 2][0:num_objects]
