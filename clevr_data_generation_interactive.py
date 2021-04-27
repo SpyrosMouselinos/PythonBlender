@@ -684,9 +684,9 @@ def main(agent='random', scale=0.1, noise='gaussian', img_offset, max_episodes, 
     def add_uniform(x, low=-scale, high=scale):
         return x + np.random.uniform(low, high)
     
-    if agent='random':
+    if agent == 'random':
         agent = InformedRandomAgent(scenes=None)
-    elif agent='informed':
+    elif agent =='informed':
         agent = InformedRandomAgent()
         if noise == 'gaussian':
             agent.register_noise_gen(add_gaussian)
