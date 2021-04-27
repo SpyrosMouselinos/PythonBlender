@@ -754,5 +754,5 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', default=1)
 
     args = parser.parse_args()
-    main(args.img_offset, args.max_episodes, args.batch_size)
+    main(int(args.img_offset), int(args.max_episodes), int(args.batch_size))
         
