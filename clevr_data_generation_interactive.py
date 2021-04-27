@@ -331,7 +331,7 @@ def command_template(num_images,
   back_light_jitter = [str(f) for f in back_light_jitter]
   camera_jitter = [str(f) for f in camera_jitter]
   num_objects = [str(f) for f in num_objects]
-  cmd_template = f'{up_to_here}/generation/blender2.79/blender -noaudio --background --python {up_to_here}/generation/det_render_images.py -- --num_images={num_images} \
+  cmd_template = f'{up_to_here}/generation/blender2.79/blender -noaudio --background --python {up_to_here}/generation/det_render_images.py  > /dev/null 2>&1 -- --num_images={num_images} \
       --key_light_jitter={",".join(key_light_jitter)} \
       --fill_light_jitter={",".join(fill_light_jitter)} \
       --back_light_jitter={",".join(back_light_jitter)} \
