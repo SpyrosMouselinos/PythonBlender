@@ -34,16 +34,20 @@ def invert_dict(d):
     return {value: key for (key, value) in d.items()}
 
 
-with open('../models/CLEVR/vocab.json', 'r') as fin:
-    data = json.loads(fin.read())
+try:
+    with open('../models/CLEVR/vocab.json', 'r') as fin:
+        data = json.loads(fin.read())
 
-question_token_to_idx = data['question_token_to_idx']
-program_token_to_idx = data['program_token_to_idx']
-answer_token_to_idx = data['answer_token_to_idx']
+    question_token_to_idx = data['question_token_to_idx']
+    program_token_to_idx = data['program_token_to_idx']
+    answer_token_to_idx = data['answer_token_to_idx']
 
-idx_to_question_token = invert_dict(question_token_to_idx)
-idx_to_program_token = invert_dict(program_token_to_idx)
-idx_to_answer_token = invert_dict(answer_token_to_idx)
+    idx_to_question_token = invert_dict(question_token_to_idx)
+    idx_to_program_token = invert_dict(program_token_to_idx)
+    idx_to_answer_token = invert_dict(answer_token_to_idx)
+except FileNotFoundError:
+    print("Looking for ../models/CLEVR/vocab.json...")
+    print("Folder not found...")
 
 
 def _dataset_to_tensor(dset, mask=None):
