@@ -32,7 +32,7 @@ np.random.seed(666)
 torch.manual_seed(666)
     
     
-USE_GPU = 0
+USE_GPU = 1
 SPLIT = 'val'
 
 """### Path Setting
@@ -668,91 +668,105 @@ def extract_features(image, cnn, dtype):
     return feats_var.cpu()
 
 
-def main(img_offset,max_episodes,batch_size):
-  IMG_OFFSET = img_offset
-  episodes = 0 + IMG_OFFSET
-  MAX_EPISODES = max_episodes  + IMG_OFFSET
-  BATCH_SIZE = batch_size
-  global_accuracy_sa = []
-  global_accuracy_iep = []
-  global_accuracy_film = []
-  global_generation_success_rate = 0
-  agent = InformedRandomAgent()
-
-  def add_gaussian(x, loc=0, scale=0.1):
-      return x + np.random.normal(loc, scale)
-
-  def add_uniform(x, low=-0.1, high=0.1):
-      return x + np.random.uniform(low, high)
-
-  agent.register_noise_gen(add_uniform)
-
-  start_time = time.time()
-  while episodes < MAX_EPISODES:
-
-      ## Suggest a configuration
-      camera_control, object_scms, object_3d_pos = agent(objects=-1, start_idx=episodes*BATCH_SIZE, batch_size=BATCH_SIZE, randomize_idx=False)
-      
-      ### Move to Numpy Format
-      key_light_jitter, fill_light_jitter, back_light_jitter, camera_jitter = camera_control
-      per_image_objects, per_image_shapes, per_image_colors, per_image_materials, per_image_sizes = object_scms
-      per_image_x, per_image_y, per_image_theta = object_3d_pos
-      #### Render it ###
-      attempted_images = render_image(key_light_jitter,
-                                      fill_light_jitter,
-                                      back_light_jitter,
-                                      camera_jitter,
-                                      per_image_objects,
-                                      per_image_shapes,
-                                      per_image_colors,
-                                      per_image_materials,
-                                      per_image_sizes,
-                                      per_image_x,
-                                      per_image_y,
-                                      per_image_theta,
-                                      num_images=BATCH_SIZE,
-                                      workers=1,
-                                      split=f'{SPLIT}',
-                                      assemble_after=False,
-                                      start_idx=episodes*BATCH_SIZE
-                                      )
-      correct_images = [f[0] for f in attempted_images if f[1] == 1]
-      print(f"Made {len(correct_images)} out of {BATCH_SIZE} Images")
-      global_generation_success_rate += len(correct_images)
-      episodes +=1
-  end_time = time.time()
-  print(f"Took {end_time - start_time} time for {global_generation_success_rate} images")
-  print(f"Seconds per Image:  {round(end_time - start_time,2) / global_generation_success_rate}")
-  print(f"Generator Success Rate: {round(global_generation_success_rate / (MAX_EPISODES * BATCH_SIZE),2)}")
-  print()
-  print("Assembling Scenes into 1 scene...")
-  all_scenes = []
-  for scene_path in os.listdir(output_scene_dir):
-      if not scene_path.endswith('.json') or 'scenes' in scene_path:
-          continue
-      else:
-          with open(output_scene_dir + '/' +scene_path, 'r') as f:
-              all_scenes.append(json.load(f))
-
-  output = {
-      'info': {
-          'split': SPLIT,
-      },
-      'scenes': all_scenes
-  }
-  with open(output_scene_file, 'w') as f:
-      json.dump(output, f)
-
-  print("Generating Questions...")
-  generator = make_questions(word_replace_dict={'True':'yes','False':'no'}, output_questions_file = f'{up_to_here}/questions/CLEVR_{SPLIT}_questions.json')
-  print("Questions Created...")
+def main(agent='random', scale=0.1, noise='gaussian', img_offset, max_episodes, batch_size, max_complete_images=7_000):
+    IMG_OFFSET = img_offset
+    episodes = 0 + IMG_OFFSET
+    MAX_EPISODES = max_episodes  + IMG_OFFSET
+    BATCH_SIZE = batch_size
+    global_accuracy_sa = []
+    global_accuracy_iep = []
+    global_accuracy_film = []
+    global_generation_success_rate = 0
     
+    def add_gaussian(x, loc=0, scale=scale):
+        return x + np.random.normal(loc, scale)
+
+    def add_uniform(x, low=-scale, high=scale):
+        return x + np.random.uniform(low, high)
+    
+    if agent='random':
+        agent = InformedRandomAgent(scenes=None)
+    elif agent='informed':
+        agent = InformedRandomAgent()
+        if noise == 'gaussian':
+            agent.register_noise_gen(add_gaussian)
+        else:
+            agent.register_noise_gen(add_uniform)
+
+    start_time = time.time()
+    while episodes < MAX_EPISODES:
+
+        ## Suggest a configuration
+        camera_control, object_scms, object_3d_pos = agent(objects=-1, start_idx=episodes*BATCH_SIZE, batch_size=BATCH_SIZE, randomize_idx=False)
+        
+        ### Move to Numpy Format
+        key_light_jitter, fill_light_jitter, back_light_jitter, camera_jitter = camera_control
+        per_image_objects, per_image_shapes, per_image_colors, per_image_materials, per_image_sizes = object_scms
+        per_image_x, per_image_y, per_image_theta = object_3d_pos
+        #### Render it ###
+        attempted_images = render_image(key_light_jitter,
+                                        fill_light_jitter,
+                                        back_light_jitter,
+                                        camera_jitter,
+                                        per_image_objects,
+                                        per_image_shapes,
+                                        per_image_colors,
+                                        per_image_materials,
+                                        per_image_sizes,
+                                        per_image_x,
+                                        per_image_y,
+                                        per_image_theta,
+                                        num_images=BATCH_SIZE,
+                                        workers=4,
+                                        split=f'{SPLIT}',
+                                        assemble_after=False,
+                                        start_idx=episodes*BATCH_SIZE
+                                        )
+        correct_images = [f[0] for f in attempted_images if f[1] == 1]
+        print(f"Made {len(correct_images)} out of {BATCH_SIZE} Images")
+        global_generation_success_rate += len(correct_images)
+        if global_generation_success_rate >= max_complete_images:
+              break
+        episodes +=1
+    end_time = time.time()
+    print()
+    print()
+    print()
+    print(f"Took {end_time - start_time} time for {global_generation_success_rate} images")
+    print(f"Seconds per Image:  {round(end_time - start_time,2) / global_generation_success_rate}")
+    print(f"Generator Success Rate: {round(global_generation_success_rate / (MAX_EPISODES * BATCH_SIZE),2)}")
+    print()
+    print("Assembling Scenes into 1 scene...")
+    all_scenes = []
+    for scene_path in os.listdir(output_scene_dir):
+        if not scene_path.endswith('.json') or 'scenes' in scene_path:
+            continue
+        else:
+            with open(output_scene_dir + '/' +scene_path, 'r') as f:
+                all_scenes.append(json.load(f))
+
+    output = {
+        'info': {
+            'split': SPLIT,
+        },
+        'scenes': all_scenes
+    }
+    with open(output_scene_file, 'w') as f:
+        json.dump(output, f)
+
+    #print("Generating Questions...")
+    #generator = make_questions(word_replace_dict={'True':'yes','False':'no'}, output_questions_file = f'{up_to_here}/questions/CLEVR_{SPLIT}_questions.json')
+    print(f"Finished for agent: {agent}, scale: {scale}, and noise: {noise}")
+      
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--agent', default='random')
+    parser.add_argument('--scale', default=0.1)
+    parser.add_argument('--noise', default='gaussian')
     parser.add_argument('--img_offset', default=0)
-    parser.add_argument('--max_episodes', default=1)
-    parser.add_argument('--batch_size', default=1)
+    parser.add_argument('--max_episodes', default=1_000_000)
+    parser.add_argument('--batch_size', default=16)
 
     args = parser.parse_args()
-    main(int(args.img_offset), int(args.max_episodes), int(args.batch_size))
+    main(str(args.agent), float(args.scale), str(args.noise), int(args.img_offset), int(args.max_episodes), int(args.batch_size))
         
