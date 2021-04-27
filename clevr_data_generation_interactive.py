@@ -618,7 +618,7 @@ class InformedRandomAgent(nn.Module):
                     object_3d_pos[j][i] = 6.0 * (torch.rand(size=(2,)) - 0.5)
             camera_control = 3 * torch.randn(size=(batch_size,4))
             #### Move to Numpy Format
-            key_light_jitter, fill_light_jitter, back_light_jitter, camera_jitter = sellf.translate_camera_feature(camera_control.numpy().astype(float))
+            key_light_jitter, fill_light_jitter, back_light_jitter, camera_jitter = self.translate_camera_feature(camera_control.numpy().astype(float))
             per_image_objects, per_image_shapes, per_image_colors, per_image_materials, per_image_sizes = self.translate_object_scm(object_scms.numpy().astype(int))
             per_image_x, per_image_y, per_image_theta = self.translate_object_3d_pos(object_3d_pos.numpy())
         else:
