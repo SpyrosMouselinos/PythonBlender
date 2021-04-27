@@ -668,7 +668,7 @@ def extract_features(image, cnn, dtype):
     return feats_var.cpu()
 
 
-def main(agent='random', scale=0.1, noise='gaussian', img_offset, max_episodes, batch_size, max_complete_images=7_000):
+def main(agent='random', scale=0.1, noise='gaussian', img_offset=0, max_episodes=1, batch_size=2, max_complete_images=7_000):
     IMG_OFFSET = img_offset
     episodes = 0 + IMG_OFFSET
     MAX_EPISODES = max_episodes  + IMG_OFFSET
