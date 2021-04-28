@@ -221,6 +221,7 @@ def main(use_gpu=1, split='val', agent='random', scale=0.1, noise='gaussian', im
                     workers=1,
                     clean_before=False,
                     assemble_after=False,
+                    **kwargs
                     ):
       ### Let's see if we can multi-process this thing ###
       ### Well if that is the case that must happen on Image Level ###
@@ -263,7 +264,7 @@ def main(use_gpu=1, split='val', agent='random', scale=0.1, noise='gaussian', im
         }})
 
       for argument, passed_value in collect_locals:
-        if argument == 'clean_before' or argument == 'assemble_after':
+        if argument == 'clean_before' or argument == 'assemble_after' or argument == 'workers':
           continue
         if argument in ['num_images','split','start_idx','workers']:
           if argument == 'num_images':
@@ -275,10 +276,8 @@ def main(use_gpu=1, split='val', agent='random', scale=0.1, noise='gaussian', im
           elif argument == 'start_idx':
             for i in effective_workers:
               effective_args[f'worker_{i}'].update({'start_idx': start_indexes[i]})
-          elif argument == 'workers':
-            pass
           else:
-            raise ValueError("You passed an argument that made it up to here?")
+            continue
           #################################################################################
         else:
           for i in effective_workers:
