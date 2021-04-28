@@ -736,10 +736,10 @@ def main(agent='random', scale=0.1, noise='gaussian', img_offset=0, max_episodes
     print(f"Seconds per Image:  {round(end_time - start_time,2) / global_generation_success_rate}")
     print(f"Generator Success Rate: {round(global_generation_success_rate / (MAX_EPISODES * BATCH_SIZE),2)}")
     print()
-    print("Assembling Scenes into 1 scene...")
+    print("Assembling Scenes over offset into 1 scene...")
     all_scenes = []
     for scene_path in os.listdir(output_scene_dir):
-        if not scene_path.endswith('.json') or 'scenes' in scene_path:
+        if not scene_path.endswith('.json') or 'scenes' in scene_path or SPLIT not in scene_path:
             continue
         else:
             with open(output_scene_dir + '/' +scene_path, 'r') as f:
