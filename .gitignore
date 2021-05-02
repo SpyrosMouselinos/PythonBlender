@@ -1,5 +1,8 @@
 # CLEVR Downloads
 official_val/
+images/
+questions/
+scenes/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

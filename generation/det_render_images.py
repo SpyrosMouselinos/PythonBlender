@@ -177,7 +177,7 @@ parser.add_argument('--render_min_bounces', default=8, type=int,
                     help="The minimum number of bounces to use for rendering.")
 parser.add_argument('--render_max_bounces', default=8, type=int,
                     help="The maximum number of bounces to use for rendering.")
-parser.add_argument('--render_tile_size', default=256, type=int,
+parser.add_argument('--render_tile_size', default=512, type=int,
                     help="The tile size to use for rendering. This should not affect the " +
                          "quality of the rendered image but may affect the speed; CPU-based " +
                          "rendering may achieve better performance using smaller tile sizes " +
@@ -576,7 +576,8 @@ def check_visibility(blender_objects, min_pixels_per_object, old_behaviour=False
     p = list(img.pixels)
     color_count = Counter((p[i], p[i + 1], p[i + 2], p[i + 3])
                           for i in range(0, len(p), 4))
-    os.remove(path)
+    #TODO(Spyros) Enable this in final push
+    #os.remove(path)
     if len(color_count) != len(blender_objects) + 1:
         return False
     for _, count in color_count.most_common():
