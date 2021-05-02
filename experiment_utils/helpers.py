@@ -360,58 +360,6 @@ def render_image(
     return assembled_images
 
 
-def make_questions(input_scene_file: str,
-                   output_questions_file: str,
-                   output_image_dir: str,
-                   templates_per_image: int = 10,
-                   instances_per_template: int = 1,
-                   start_idx: int = 0,
-                   word_replace_dict: Union[dict, None] = None
-                   ):
-    collected_locals = locals().items()
-    cmd = question_template(input_scene_file,
-                            output_questions_file,
-                            templates_per_image,
-                            instances_per_template,
-                            start_idx)
-    arg = shlex.split(cmd)
-    proc = Popen(arg, stderr=PIPE)
-    out, err = proc.communicate()
-    if err == bytes(('').encode('utf-8')):
-        # print("Questions were generated succesfully!")
-        pass
-    else:
-        print(err)
-    with open(output_questions_file, 'r') as fin:
-        data = json.load(fin)
-
-    pairs_to_yield = {}
-
-    for idx in range(0, len(data['questions'])):
-        image = output_image_dir + '/' + data['questions'][idx]['image_filename']
-        question = str(data['questions'][idx]['question'])
-        answer = str(data['questions'][idx]['answer'])
-        if word_replace_dict is None:
-            pass
-        else:
-            for word, replacement in word_replace_dict.items():
-                question = question.replace(word, replacement)
-                answer = answer.replace(word, replacement)
-        if image in pairs_to_yield:
-            pairs_to_yield[image]['questions'].append(question)
-            pairs_to_yield[image]['answers'].append(answer)
-        else:
-            pairs_to_yield.update({image: {'questions': [question], 'answers': [answer]}})
-
-    def one_shot_gen():
-        for image in pairs_to_yield:
-            questions = pairs_to_yield[image]['questions']
-            answers = pairs_to_yield[image]['answers']
-            yield image, questions, answers
-
-    return one_shot_gen
-
-
 def load_resnet_backbone(dtype):
     whole_cnn = getattr(torchvision.models, 'resnet101')(pretrained=True)
     layers = [
@@ -475,3 +423,61 @@ def merge_scenes(output_scene_dir: str, split: str) -> None:
     with open(f'{output_scene_dir}/CLEVR_{split}_scenes.json', 'w') as f:
         json.dump(output, f)
     return
+
+
+def make_questions(output_questions_file: str,
+                   output_image_dir: str,
+                   word_replace_dict: Union[dict, None] = None,
+                   mock: bool = True,
+                   mock_name: str = None,
+                   mock_image_dir: Union[str, None] = None,
+                   **kwargs
+                   ) -> object:
+    if not mock:
+        cmd = question_template(**kwargs)
+        arg = shlex.split(cmd)
+        proc = Popen(arg, stderr=PIPE)
+        out, err = proc.communicate()
+        if err == bytes(('').encode('utf-8')):
+            # print("Questions were generated succesfully!")
+            pass
+        else:
+            print(err)
+
+    with open(output_questions_file, 'r') as fin:
+        data = json.load(fin)
+
+    pairs_to_yield = {}
+
+    for idx in range(0, len(data['questions'])):
+        image = output_image_dir + '/' + data['questions'][idx]['image_filename']
+        if mock_name is not None:
+            id = data['questions'][idx]['image_filename'].split('_')[-1]
+            image = output_image_dir + '/' + 'CLEVR_' + mock_name + '_' + id
+        if mock_image_dir is not None:
+            id = data['questions'][idx]['image_filename'].split('_')[-1]
+            if mock_name is not None:
+                image = mock_image_dir + '/' + 'CLEVR_' + mock_name + '_' + id
+            else:
+                image = mock_image_dir + '/' + data['questions'][idx]['image_filename']
+        question = str(data['questions'][idx]['question'])
+        answer = str(data['questions'][idx]['answer'])
+        if word_replace_dict is None:
+            pass
+        else:
+            for word, replacement in word_replace_dict.items():
+                question = question.replace(word, replacement)
+                answer = answer.replace(word, replacement)
+        if image in pairs_to_yield:
+            pairs_to_yield[image]['questions'].append(question)
+            pairs_to_yield[image]['answers'].append(answer)
+        else:
+            pairs_to_yield.update({image: {'questions': [question], 'answers': [answer]}})
+
+    def one_shot_gen():
+        for image in pairs_to_yield:
+            questions = pairs_to_yield[image]['questions']
+            answers = pairs_to_yield[image]['answers']
+            yield image, questions, answers
+
+    return one_shot_gen
