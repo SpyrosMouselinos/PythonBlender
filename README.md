@@ -1,12 +1,14 @@
 # PythonBlender
 Let's Marry Python :snake: and Blender :traffic_light:
 
+
 ***
-Update (27 April 2021): 
-* Added the final form of the Deterministic Image Creator
+Update 2 (4 June 2021): 
+* Added UCB Bandit :slot_machine:
+***
+Update 1 (27 April 2021): 
+* Added the final form of the Deterministic Image Creator :paintbrush:
 * Added Custom Blender support
-
-
 *** 
 #### Remember: .sh files Needs read / exec permissions
 

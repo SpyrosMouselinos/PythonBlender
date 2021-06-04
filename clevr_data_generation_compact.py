@@ -116,7 +116,7 @@ def conduct_experiments_on_images():
                 print(f"Gauss Val Exists, Original reciprocate..{yyy}")
             else:
                 continue
-            feats = extract_features(i, cnn, dtype=torch.cuda.FloatTensor)
+            #feats = extract_features(i, cnn, dtype=torch.cuda.FloatTensor)
         except:
             print(f"Image {i} not found...")
             not_found += 1
