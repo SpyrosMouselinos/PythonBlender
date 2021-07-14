@@ -34,20 +34,16 @@ def invert_dict(d):
     return {value: key for (key, value) in d.items()}
 
 
-try:
-    with open('../models/CLEVR/vocab.json', 'r') as fin:
-        data = json.loads(fin.read())
+with open('../models/CLEVR/vocab.json', 'r') as fin:
+    data = json.loads(fin.read())
 
-    question_token_to_idx = data['question_token_to_idx']
-    program_token_to_idx = data['program_token_to_idx']
-    answer_token_to_idx = data['answer_token_to_idx']
+question_token_to_idx = data['question_token_to_idx']
+program_token_to_idx = data['program_token_to_idx']
+answer_token_to_idx = data['answer_token_to_idx']
 
-    idx_to_question_token = invert_dict(question_token_to_idx)
-    idx_to_program_token = invert_dict(program_token_to_idx)
-    idx_to_answer_token = invert_dict(answer_token_to_idx)
-except FileNotFoundError:
-    print("Looking for ../models/CLEVR/vocab.json...")
-    print("Folder not found...")
+idx_to_question_token = invert_dict(question_token_to_idx)
+idx_to_program_token = invert_dict(program_token_to_idx)
+idx_to_answer_token = invert_dict(answer_token_to_idx)
 
 
 def _dataset_to_tensor(dset, mask=None):
@@ -219,6 +215,10 @@ def clevr_collate(batch):
     return [question_batch, image_batch, feat_batch, answer_batch, program_seq_batch, program_struct_batch,
             image_index_batch]
 
+def load_cnn_sa(baseline_model='../data/models/CLEVR/cnn_lstm_sa_mlp.pt'):
+    model, _ = load_baseline(baseline_model)
+    model.eval()
+    return model
 
 def inference_with_cnn_sa(questions='Is the number of cubes less than the number of small metal things?',
                           input_questions_h5='../data/val_questions.h5',
@@ -237,10 +237,11 @@ def inference_with_cnn_sa(questions='Is the number of cubes less than the number
                           family_split_file=None,
                           sample_argmax=1,
                           temperature=1.0,
-                          vocab_json='../data/vocab.json'):
+                          vocab_json='../data/vocab.json', model=None):
     collect_locals = dict(locals())
-    model, _ = load_baseline(baseline_model)
-    model.eval()
+    if model is None:
+        model, _ = load_baseline(baseline_model)
+        model.eval()
     if batch_size == 1:
         answer = run_single_example(collect_locals, model)
         return answer
@@ -248,6 +249,14 @@ def inference_with_cnn_sa(questions='Is the number of cubes less than the number
         run_batch(collect_locals, model)
         return
 
+def load_iep(program_generator='../data/models/CLEVR/program_generator_700k.pt', 
+             execution_engine='../data/models/CLEVR/execution_engine_700k.pt'):
+    program_generator, _ = load_program_generator(program_generator, 'Seq2Seq')
+    program_generator.eval()
+    execution_engine, _ = load_execution_engine(execution_engine, verbose=False, model_type='EE')
+    execution_engine.eval()
+    model = (program_generator, execution_engine)
+    return model
 
 def inference_with_iep(questions='Is the number of cubes less than the number of small metal things?',
                        image='../img/CLEVR_val_000013.png',
@@ -267,13 +276,14 @@ def inference_with_iep(questions='Is the number of cubes less than the number of
                        family_split_file=None,
                        sample_argmax=1,
                        temperature=1.0,
-                       vocab_json='../data/vocab.json'):
+                       vocab_json='../data/vocab.json', model=None):
     collect_locals = dict(locals())
-    program_generator, _ = load_program_generator(program_generator, 'Seq2Seq')
-    program_generator.eval()
-    execution_engine, _ = load_execution_engine(execution_engine, verbose=False, model_type='EE')
-    execution_engine.eval()
-    model = (program_generator, execution_engine)
+    if model is None:
+        program_generator, _ = load_program_generator(program_generator, 'Seq2Seq')
+        program_generator.eval()
+        execution_engine, _ = load_execution_engine(execution_engine, verbose=False, model_type='EE')
+        execution_engine.eval()
+        model = (program_generator, execution_engine)
     if batch_size == 1:
         answer = run_single_example(collect_locals, model)
         return answer
@@ -281,6 +291,14 @@ def inference_with_iep(questions='Is the number of cubes less than the number of
         run_batch(collect_locals, model)
         return
 
+def load_film(program_generator='../data/models/CLEVR/program_generator_700k.pt', 
+             execution_engine='../data/models/CLEVR/execution_engine_700k.pt'):
+    program_generator, _ = load_program_generator(program_generator, 'FiLM')
+    program_generator.eval()
+    execution_engine, _ = load_execution_engine(execution_engine, verbose=False, model_type='FiLM')
+    execution_engine.eval()
+    model = (program_generator, execution_engine)
+    return model
 
 def inference_with_film(questions='Is the number of cubes less than the number of small metal things?',
                         image='../img/CLEVR_val_000013.png',
@@ -300,13 +318,15 @@ def inference_with_film(questions='Is the number of cubes less than the number o
                         family_split_file=None,
                         sample_argmax=1,
                         temperature=1.0,
-                        vocab_json='../data/vocab.json'):
+                        vocab_json='../data/vocab.json', model=None):
     collect_locals = dict(locals())
-    program_generator, _ = load_program_generator(program_generator, 'FiLM')
-    program_generator.eval()
-    execution_engine, _ = load_execution_engine(execution_engine, verbose=False, model_type='FiLM')
-    execution_engine.eval()
-    model = (program_generator, execution_engine)
+    if model is None:
+        program_generator, _ = load_program_generator(program_generator, 'FiLM')
+        program_generator.eval()
+        execution_engine, _ = load_execution_engine(execution_engine, verbose=False, model_type='FiLM')
+        execution_engine.eval()
+        model = (program_generator, execution_engine)
+        
     if batch_size == 1:
         answer = run_single_example(collect_locals, model, tuple_mode='FiLM')
         return answer

@@ -6,7 +6,7 @@
     "Integer": null,
     "Bool": null,
     "Shape": [
-      "cube", "sphere", "cylinder"
+      "cube", "sphere", "cylinder", "bullet", "butterfly"
     ],
     "Color": [
       "gray", "red", "blue", "green", "brown", "purple", "cyan", "yellow"

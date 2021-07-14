@@ -2,7 +2,9 @@
   "shapes": {
     "cube": "SmoothCube_v2",
     "sphere": "Sphere",
-    "cylinder": "SmoothCylinder"
+    "cylinder": "SmoothCylinder",
+    "bullet" : "Bullet",
+    "butterfly": "Butterfly"
   },
   "colors": {
     "gray": [87, 87, 87],

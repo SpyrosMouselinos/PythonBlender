@@ -8,6 +8,23 @@ import tempfile
 from collections import Counter
 from datetime import datetime as dt
 
+
+def find_platform() -> str:
+    if os.name == 'nt':
+        PLATFORM = 'WIN'
+    elif os.name == 'posix':
+        PLATFORM = 'LINUX'
+    else:
+        raise EnvironmentError("Where are you running?\n")
+    return PLATFORM
+
+
+def find_platform_slash() -> str:
+    platform = find_platform()
+    if platform == 'WIN':
+        return '\\'
+    elif platform == 'LINUX':
+        return '/'
 """
 Renders random scenes using Blender, each with with a random number of objects;
 each object has a random size, position, color, and shape. Objects will be
@@ -28,7 +45,8 @@ except ImportError as e:
     INSIDE_BLENDER = False
 if INSIDE_BLENDER:
     try:
-        sys.path.append('/'.join(os.path.realpath(__file__).split('/')[:-1]))
+        platform_slash = find_platform_slash()
+        sys.path.append(platform_slash.join(os.path.realpath(__file__).split(platform_slash)[:-1]))
         import utils
     except ImportError as e:
         print("\nERROR")
@@ -187,13 +205,13 @@ def strings_to_floats(ii):
     try:
         return [float(f) for f in ii.split(',')]
     except:
-        return [float(f)]
+        return [float(ii)]
         
 def strings_to_ints(ii):
     try:
         return [int(f) for f in ii.split(',')]
     except:
-        return [int(f)]
+        return [int(ii)]
 
 def binary_to_dict(the_binary):
     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split('__'))
@@ -215,7 +233,7 @@ def main(args):
     blend_template = '%s%%0%dd.blend' % (prefix, num_digits)
     img_template = os.path.join(args.output_image_dir, img_template)
     scene_template = os.path.join(args.output_scene_dir, scene_template)
-    blend_template = os.path.join(args.output_blend_dir, blend_template)
+
 
     if not os.path.isdir(args.output_image_dir):
         os.makedirs(args.output_image_dir)
@@ -278,7 +296,7 @@ def render_scene(args,
     render_args.resolution_percentage = 100
     render_args.tile_x = args.render_tile_size
     render_args.tile_y = args.render_tile_size
-    if args.use_gpu == 1:
+    if args.use_gpu >= 1:
         # Blender changed the API for enabling CUDA at some point
         if bpy.app.version < (2, 78, 0):
             bpy.context.user_preferences.system.compute_device_type = 'CUDA'
@@ -293,7 +311,7 @@ def render_scene(args,
     bpy.context.scene.cycles.samples = args.render_num_samples
     bpy.context.scene.cycles.transparent_min_bounces = args.render_min_bounces
     bpy.context.scene.cycles.transparent_max_bounces = args.render_max_bounces
-    if args.use_gpu == 1:
+    if args.use_gpu >= 1:
         bpy.context.scene.cycles.device = 'GPU'
 
     # This will give ground-truth information about the scene and its objects

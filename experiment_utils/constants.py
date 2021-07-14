@@ -45,9 +45,16 @@ def find_platform_slash() -> str:
         return '/'
 
 
+def find_platform_exec() -> str:
+    platform = find_platform()
+    if platform == 'WIN':
+        return 'blender'
+    elif platform == 'LINUX':
+        return 'sudo ./blender2.79/blender'
+
 PLATFORM_SLASH = find_platform_slash()
 UP_TO_HERE_ = PLATFORM_SLASH.join(os.path.abspath(__file__).split(PLATFORM_SLASH)[:-2]).replace(PLATFORM_SLASH, '/')
-SPLIT_ = 'Gauss_1'
+SPLIT_ = 'Rendered'
 OUTPUT_IMAGE_DIR_ = UP_TO_HERE_ + '/images'
 OUTPUT_SCENE_DIR_ = UP_TO_HERE_ + '/scenes'
 OUTPUT_SCENE_FILE_ = UP_TO_HERE_ + f"/scenes/CLEVR_{SPLIT_}_scenes.json"
