@@ -362,9 +362,9 @@ def render_image(key_light_jitter=[1, 2, 3, 4, 5],
     cmds = [command_template(**effective_args[f]) for f in effective_args.keys()]
 
     args = [shlex.split(cmd) for cmd in cmds]
-    procs = [Popen(arg, stderr=PIPE, stdout=PIPE) for arg in args]
+    procs = [Popen(arg) for arg in args]
     for i, proc in enumerate(procs):
-        print(proc.communicate())
+        proc.communicate()
         proc.wait()
 
     ### Assemble Images
@@ -469,6 +469,7 @@ def make_questions(input_scene_file,
                    mock_name=None,
                    mock_image_dir=None
                    ):
+    #TODO (Spyros): Change behaviour of single vs multiple scenes
     if not mock:
         collected_locals = locals().items()
         collected_locals = dict(collected_locals)
