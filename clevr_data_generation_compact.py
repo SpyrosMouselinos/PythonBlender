@@ -1,8 +1,8 @@
 import argparse
-import os
 import random
 import time
 import warnings
+
 import numpy as np
 
 from agents.models import RandAgent
@@ -11,8 +11,7 @@ from experiment_utils.constants import UP_TO_HERE_, \
     OUTPUT_QUESTION_FILE_, \
     OUTPUT_SCENE_DIR_, \
     OUTPUT_IMAGE_DIR_, SPLIT_
-from experiment_utils.helpers import render_image, initialize_paths, make_questions
-from generation.my_run_model import inference_with_cnn_sa, inference_with_iep, inference_with_film, load_cnn_sa, load_iep, load_film
+from experiment_utils.helpers import render_image, initialize_paths
 
 warnings.filterwarnings("ignore", category=UserWarning)
 random.seed(666)
@@ -68,6 +67,7 @@ def test_generate_images_with_agent(max_images=1000, batch_size=32, max_episodes
     print(f"Images per second {ips}")
     print(f"Generator Success Rate: {round(global_generation_success_rate / (max_episodes * batch_size), 2)}")
     return duration
+
 
 # def test_generate_images_and_answer_with_fbai_testbed(max_images=10, batch_size=4, max_episodes=1000, workers=1):
 #     global_generation_success_rate = 0
@@ -213,19 +213,26 @@ def test_generate_images_with_agent(max_images=1000, batch_size=32, max_episodes
 #         global_accuracy_film.append(score_film / examples)
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--ngpus', type=str, default=1)
     parser.add_argument('--output_image_dir', type=str, default=OUTPUT_IMAGE_DIR_)
     parser.add_argument('--output_scene_dir', type=str, default=OUTPUT_SCENE_DIR_)
     parser.add_argument('--output_scene_file', type=str, default=OUTPUT_SCENE_FILE_)
     parser.add_argument('--output_question_file', type=str, default=OUTPUT_QUESTION_FILE_)
 
     args = parser.parse_args()
+    ngpus = str(args.ngpus)
     output_image_dir = str(args.output_image_dir)
     output_scene_dir = str(args.output_scene_dir)
     output_scene_file = str(args.output_scene_file)
     output_question_file = str(args.output_question_file)
 
     initialize_paths(output_scene_dir=OUTPUT_SCENE_DIR_, output_image_dir=OUTPUT_IMAGE_DIR_, up_to_here=UP_TO_HERE_)
-
+    print("Results\n")
+    print(
+        f"{test_generate_images_with_agent(max_images=400, batch_size=32, max_episodes=10000, workers=1)} | BS 32 | W 1 | GPU {ngpus}")
+    print(
+        f"{test_generate_images_with_agent(max_images=400, batch_size=32, max_episodes=10000, workers=4)} | BS 32 | W 4 | GPU {ngpus}")
+    print(
+        f"{test_generate_images_with_agent(max_images=400, batch_size=32, max_episodes=10000, workers=8)} | BS 32 | W 8 | GPU {ngpus}")
