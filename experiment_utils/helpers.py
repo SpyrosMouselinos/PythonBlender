@@ -282,13 +282,12 @@ def command_template(num_images,
     fill_light_jitter = [str(f) for f in fill_light_jitter]
     back_light_jitter = [str(f) for f in back_light_jitter]
     camera_jitter = [str(f) for f in camera_jitter]
-    num_objects = [str(f) for f in num_objects]
+
     cmd_template = f'{find_platform_exec()}  -noaudio --background --python {UP_TO_HERE_}/generation/det_render_images.py > /dev/null 2>&1 -- --num_images={num_images} \
       --key_light_jitter={",".join(key_light_jitter)} \
       --fill_light_jitter={",".join(fill_light_jitter)} \
       --back_light_jitter={",".join(back_light_jitter)} \
       --camera_jitter={",".join(camera_jitter)} \
-      --num_objects={",".join(num_objects)} \
       --split={split} \
       --object_properties={dict_to_binary(object_properties)}\
       --output_image_dir={output_image_dir} \
