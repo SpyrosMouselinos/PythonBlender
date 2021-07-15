@@ -10,6 +10,7 @@ from skimage.io import imread
 from skimage.transform import resize as imresize
 from torch.autograd import Variable
 from torch.nn.init import kaiming_normal, kaiming_uniform_
+from experiment_utils.constants import UP_TO_HERE_
 
 SPECIAL_TOKENS = {
     '<NULL>': 0,
@@ -34,7 +35,7 @@ def invert_dict(d):
     return {value: key for (key, value) in d.items()}
 
 
-with open('../models/CLEVR/vocab.json', 'r') as fin:
+with open(f'{UP_TO_HERE_}/models/CLEVR/vocab.json', 'r') as fin:
     data = json.loads(fin.read())
 
 question_token_to_idx = data['question_token_to_idx']
