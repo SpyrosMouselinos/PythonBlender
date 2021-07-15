@@ -152,8 +152,8 @@ class InformedRandomAgent(RandAgent):
 
 
 class RL_Bandit_Agent(RandAgent):
-    def __init__(self, padding_number=-10,
-                 scenes='/content/gdrive/MyDrive/blender_agents/official_val/CLEVR_val_scenes.json', bandit_mode='UCB'):
+    def __init__(self, scenes,padding_number=-10,
+                  bandit_mode='UCB'):
         super(RL_Bandit_Agent, self).__init__()
         self.padding_number = padding_number
         if scenes is not None:

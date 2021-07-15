@@ -159,34 +159,7 @@ parser.add_argument('--camera_jitter', default='0.5,0.5', type=str,
 parser.add_argument('--num_objects', default=[],
                     help="The number of objects to place in each scene")
 
-parser.add_argument('--object_properties', default='{"0":[{"object": "SmoothCube_v2",\
-                                                     "color": "red",\
-                                                     "material": "MyMetal",\
-                                                     "size": "large",\
-                                                     "theta": 0.3, \
-                                                     "x" : 2.0, \
-                                                     "y": 2.5},\
-                                                    {"object": "SmoothCube_v2",\
-                                                     "color": "green",\
-                                                     "material": "MyMetal",\
-                                                     "size": "large",\
-                                                     "theta": 0.3, \
-                                                     "x": -3.0, \
-                                                     "y": 1.5}], \
-                                                    "1":[{"object": "Sphere",\
-                                                     "color": "red",\
-                                                     "material": "Rubber",\
-                                                     "size": "large",\
-                                                     "theta": 0.3, \
-                                                     "x" : 2.0, \
-                                                     "y": 2.5},\
-                                                    {"object": "Sphere",\
-                                                     "color": "green",\
-                                                     "material": "Rubber",\
-                                                     "size": "large",\
-                                                     "theta": 0.3, \
-                                                     "x": -3.0, \
-                                                     "y": 1.5}]}', type=str,
+parser.add_argument('--object_properties',
                     help="The parameters of the Non-Deterministic Object Creation")
 
 # TODO(Spyros): Add specific args for each scene so that the program is deterministic
@@ -230,10 +203,10 @@ def main(args):
     args.fill_light_jitter = strings_to_floats(args.fill_light_jitter)
     args.back_light_jitter = strings_to_floats(args.back_light_jitter)
     args.camera_jitter = strings_to_floats(args.camera_jitter)
+    args.object_properties = eval(binary_to_dict(args.object_properties))
     args.num_objects = []
     for i in range(0, args.num_images):
-        args.num_objects.append(len(args.object_properties[i]))
-    args.object_properties = eval(binary_to_dict(args.object_properties))
+        args.num_objects.append(len(args.object_properties[str(i)]))
 
     num_digits = 6
     prefix = '%s_%s_' % (args.filename_prefix, args.split)

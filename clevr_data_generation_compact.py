@@ -71,10 +71,10 @@ def test_generate_images_with_agent(max_images=1000, batch_size=16, max_episodes
 def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_size=16, max_episodes=10000, workers=1):
     cnn = load_resnet_backbone(dtype=torch.cuda.FloatTensor)
 
-    agent = RL_Bandit_Agent(bandit_mode='UCB')
+    agent = RL_Bandit_Agent(scenes=f'{UP_TO_HERE_}/official/CLEVR_v1.0/scenes/CLEVR_val_scenes.json', bandit_mode='UCB')
 
-    cnn_sa = load_cnn_sa('../models/CLEVR/cnn_lstm_sa_mlp.pt')
-    iep = load_iep('../models/CLEVR/program_generator_700k.pt', '../models/CLEVR/execution_engine_700k_strong.pt')
+    cnn_sa = load_cnn_sa(f'{UP_TO_HERE_}/models/CLEVR/cnn_lstm_sa_mlp.pt')
+    iep = load_iep(f'{UP_TO_HERE_}/models/CLEVR/program_generator_700k.pt', f'{UP_TO_HERE_}/models/CLEVR/execution_engine_700k_strong.pt')
     # film = load_film('../models/CLEVR/film.pt', '../models/CLEVR/film.pt'
 
     global_accuracy_sa = []
@@ -123,7 +123,7 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
         if len(correct_images) > 0:
             generator = make_questions(input_scene_file=None,
                                        word_replace_dict={'True': 'yes', 'False': 'no'},
-                                       output_questions_file='/content/gdrive/MyDrive/blender_agents/official_val/CLEVR_val_questions.json',
+                                       output_questions_file=f'{UP_TO_HERE_}/official/CLEVR_v1.0/questions/CLEVR_val_questions.json',
                                        mock=True, mock_name='Rendered')
             score_sa = 0
             score_iep = 0
@@ -188,8 +188,6 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
     return
 
 
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ngpus', type=str, default=1)
@@ -207,9 +205,11 @@ if __name__ == '__main__':
 
     initialize_paths(output_scene_dir=OUTPUT_SCENE_DIR_, output_image_dir=OUTPUT_IMAGE_DIR_, up_to_here=UP_TO_HERE_)
     print("Results\n")
-    print(
-        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=1)} | BS 16 | W 1 | GPU {ngpus}")
-    print(
-        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=4)} | BS 16 | W 4 | GPU {ngpus}")
-    print(
-        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=8)} | BS 16 | W 8 | GPU {ngpus}")
+    #print(
+    #    f"{test_generate_images_with_agent(max_images=400, batch_size=4, max_episodes=10000, workers=1)} | BS 16 | W 1 | GPU {ngpus}")
+    # print(
+    #     f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=4)} | BS 16 | W 4 | GPU {ngpus}")
+    # print(
+    #     f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=8)} | BS 16 | W 8 | GPU {ngpus}")
+    #test_generate_images_with_agent(20,4,100,2)
+    test_generate_images_and_answer_with_fbai_testbed(20,4,100,2)
