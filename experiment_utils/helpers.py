@@ -270,7 +270,6 @@ def command_template(num_images,
                      fill_light_jitter,
                      back_light_jitter,
                      camera_jitter,
-                     num_objects,
                      object_properties,
                      split,
                      start_idx,
@@ -284,7 +283,7 @@ def command_template(num_images,
     back_light_jitter = [str(f) for f in back_light_jitter]
     camera_jitter = [str(f) for f in camera_jitter]
     num_objects = [str(f) for f in num_objects]
-    cmd_template = f'{find_platform_exec()}  -noaudio --background --python {UP_TO_HERE_}/generation/det_render_images.py  -- --num_images={num_images} \
+    cmd_template = f'{find_platform_exec()}  -noaudio --background --python {UP_TO_HERE_}/generation/det_render_images.py > /dev/null 2>&1 -- --num_images={num_images} \
       --key_light_jitter={",".join(key_light_jitter)} \
       --fill_light_jitter={",".join(fill_light_jitter)} \
       --back_light_jitter={",".join(back_light_jitter)} \
@@ -326,7 +325,6 @@ def render_image(key_light_jitter=[1, 2, 3, 4, 5],
                  fill_light_jitter=[1, 2, 3, 4, 5],
                  back_light_jitter=[1, 2, 3, 4, 5],
                  camera_jitter=[1, 2, 3, 4, 5],
-                 num_objects=[2, 2, 2, 2, 1],
                  per_image_shapes=[[None, None], [None, None], [None, None], [None, None], [None]],
                  per_image_colors=[[None, None], [None, None], [None, None], [None, None], [None]],
                  per_image_materials=[[None, None], [None, None], [None, None], [None, None], [None]],
@@ -411,7 +409,7 @@ def load_resnet_backbone(dtype):
     return cnn
 
 
-# cnn = load_resnet_backbone(dtype = torch.cuda.FloatTensor)
+
 
 
 def extract_features(image, cnn, dtype):

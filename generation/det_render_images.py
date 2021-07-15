@@ -25,6 +25,8 @@ def find_platform_slash() -> str:
         return '\\'
     elif platform == 'LINUX':
         return '/'
+
+
 """
 Renders random scenes using Blender, each with with a random number of objects;
 each object has a random size, position, color, and shape. Objects will be
@@ -83,12 +85,12 @@ parser.add_argument('--shape_color_combos_json', default=None,
 # Settings for objects
 parser.add_argument('--min_dist', default=0.25, type=float,
                     help="The minimum allowed distance between object centers")
-                    
+
 parser.add_argument('--margin', default=0.4, type=float,
                     help="Along all cardinal directions (left, right, front, back), all " +
                          "objects will be at least this distance apart. This makes resolving " +
                          "spatial relationships slightly less ambiguous.")
-                         
+
 parser.add_argument('--min_pixels_per_object', default=100, type=int,
                     help="All objects will have at least this many visible pixels in the " +
                          "final rendered images; this ensures that no objects are fully " +
@@ -145,18 +147,18 @@ parser.add_argument('--height', default=320, type=int,
                     help="The height (in pixels) for the rendered images")
 
 # TODO(Spyros): Make all these iterables (maybe we can vectorize the image production?)
-parser.add_argument('--key_light_jitter', default='1.0,1.0', type=str, 
+parser.add_argument('--key_light_jitter', default='1.0,1.0', type=str,
                     help="The magnitude of random jitter to add to the key light position.")
-parser.add_argument('--fill_light_jitter', default='1.0,1.0', type=str, 
+parser.add_argument('--fill_light_jitter', default='1.0,1.0', type=str,
                     help="The magnitude of random jitter to add to the fill light position.")
-parser.add_argument('--back_light_jitter', default='1.0,1.0', type=str, 
+parser.add_argument('--back_light_jitter', default='1.0,1.0', type=str,
                     help="The magnitude of random jitter to add to the back light position.")
-parser.add_argument('--camera_jitter', default='0.5,0.5', type=str, 
+parser.add_argument('--camera_jitter', default='0.5,0.5', type=str,
                     help="The magnitude of random jitter to add to the camera position")
-                    
-parser.add_argument('--num_objects', default='2,2', type=str,
+
+parser.add_argument('--num_objects', default='5', type=str,
                     help="The number of objects to place in each scene")
-                    
+
 parser.add_argument('--object_properties', default='{"0":[{"object": "SmoothCube_v2",\
                                                      "color": "red",\
                                                      "material": "MyMetal",\
@@ -184,7 +186,8 @@ parser.add_argument('--object_properties', default='{"0":[{"object": "SmoothCube
                                                      "size": "large",\
                                                      "theta": 0.3, \
                                                      "x": -3.0, \
-                                                     "y": 1.5}]}',type=str,help="The parameters of the Non-Deterministic Object Creation")
+                                                     "y": 1.5}]}', type=str,
+                    help="The parameters of the Non-Deterministic Object Creation")
 
 # TODO(Spyros): Add specific args for each scene so that the program is deterministic
 
@@ -201,39 +204,43 @@ parser.add_argument('--render_tile_size', default=512, type=int,
                          "rendering may achieve better performance using smaller tile sizes " +
                          "while larger tile sizes may be optimal for GPU-based rendering.")
 
+
 def strings_to_floats(ii):
     try:
         return [float(f) for f in ii.split(',')]
     except:
         return [float(ii)]
-        
+
+
 def strings_to_ints(ii):
     try:
         return [int(f) for f in ii.split(',')]
     except:
         return [int(ii)]
 
+
 def binary_to_dict(the_binary):
     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split('__'))
     o = json.loads(jsn)
     return o
-        
+
+
 def main(args):
     args.key_light_jitter = strings_to_floats(args.key_light_jitter)
     args.fill_light_jitter = strings_to_floats(args.fill_light_jitter)
     args.back_light_jitter = strings_to_floats(args.back_light_jitter)
     args.camera_jitter = strings_to_floats(args.camera_jitter)
-    args.num_objects = strings_to_ints(args.num_objects)
+    args.num_objects = []
+    for i in range(0, args.num_images):
+        args.num_objects[i] = len(args.object_properties[str(i)])
     args.object_properties = eval(binary_to_dict(args.object_properties))
 
     num_digits = 6
     prefix = '%s_%s_' % (args.filename_prefix, args.split)
     img_template = '%s%%0%dd.png' % (prefix, num_digits)
     scene_template = '%s%%0%dd.json' % (prefix, num_digits)
-    blend_template = '%s%%0%dd.blend' % (prefix, num_digits)
     img_template = os.path.join(args.output_image_dir, img_template)
     scene_template = os.path.join(args.output_scene_dir, scene_template)
-
 
     if not os.path.isdir(args.output_image_dir):
         os.makedirs(args.output_image_dir)
@@ -247,11 +254,7 @@ def main(args):
     assert len(args.fill_light_jitter) == args.num_images
     assert len(args.back_light_jitter) == args.num_images
     assert len(args.camera_jitter) == args.num_images
-    assert len(args.num_objects) == args.num_images
-    for i in range(0, args.num_images):
-        assert len(args.object_properties[str(i)]) == args.num_objects[i]
-    
-    
+
     render_return_code = ''
     for i in range(args.num_images):
         img_path = img_template % (i + args.start_idx)
@@ -260,13 +263,13 @@ def main(args):
         blend_path = None
 
         rendered = render_scene(args,
-                     output_index_start=args.start_idx,
-                     output_index=(i + args.start_idx),
-                     output_split=args.split,
-                     output_image=img_path,
-                     output_scene=scene_path,
-                     output_blendfile=blend_path,
-                     )
+                                output_index_start=args.start_idx,
+                                output_index=(i + args.start_idx),
+                                output_split=args.split,
+                                output_image=img_path,
+                                output_scene=scene_path,
+                                output_blendfile=blend_path,
+                                )
     return
 
 
@@ -278,7 +281,6 @@ def render_scene(args,
                  output_scene='render_json',
                  output_blendfile=None,
                  old_behaviour=False):
-                     
     # Load the main blendfile
     bpy.ops.wm.open_mainfile(filepath=args.base_scene_blendfile)
 
@@ -337,8 +339,7 @@ def render_scene(args,
     # Add random jitter to camera position
     # TODO(Spyros): This is now deterministic by the use of the new rand function
     current_item = output_index - output_index_start
-    
-    
+
     if args.camera_jitter[current_item] > 0:
         for i in range(3):
             bpy.data.objects['Camera'].location[i] += rand(args.camera_jitter[current_item])
@@ -399,7 +400,7 @@ def render_scene(args,
 
     if output_blendfile is not None:
         bpy.ops.wm.save_as_mainfile(filepath=output_blendfile)
-    
+
     return True
 
 
@@ -465,9 +466,8 @@ def add_random_objects(current_item, scene_struct, args, camera, old_behaviour=F
             if not margins_good:
                 break
 
-
         if not dists_good or not margins_good:
-            print("[DEBUG] Failed for Object, ",x," ",y,"\n")
+            print("[DEBUG] Failed for Object, ", x, " ", y, "\n")
             return None, None
 
         # Choose NOT a random color and shape
@@ -539,7 +539,7 @@ def add_random_objects(current_item, scene_struct, args, camera, old_behaviour=F
 
     # Check that all objects are at least partially visible in the rendered image
     all_visible = check_visibility(blender_objects, args.min_pixels_per_object)
-    #all_visible = True
+    # all_visible = True
     if not all_visible:
         # If any of the objects are fully occluded then start over; delete all
         # objects from the scene and place them all again.
@@ -594,8 +594,8 @@ def check_visibility(blender_objects, min_pixels_per_object, old_behaviour=False
     p = list(img.pixels)
     color_count = Counter((p[i], p[i + 1], p[i + 2], p[i + 3])
                           for i in range(0, len(p), 4))
-    #TODO(Spyros) Enable this in final push
-    #os.remove(path)
+    # TODO(Spyros) Enable this in final push
+    # os.remove(path)
     if len(color_count) != len(blender_objects) + 1:
         return False
     for _, count in color_count.most_common():
