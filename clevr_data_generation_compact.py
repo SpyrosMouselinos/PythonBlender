@@ -205,11 +205,11 @@ if __name__ == '__main__':
 
     initialize_paths(output_scene_dir=OUTPUT_SCENE_DIR_, output_image_dir=OUTPUT_IMAGE_DIR_, up_to_here=UP_TO_HERE_)
     print("Results\n")
-    #print(
-    #    f"{test_generate_images_with_agent(max_images=400, batch_size=4, max_episodes=10000, workers=1)} | BS 16 | W 1 | GPU {ngpus}")
-    # print(
-    #     f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=4)} | BS 16 | W 4 | GPU {ngpus}")
-    # print(
-    #     f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=8)} | BS 16 | W 8 | GPU {ngpus}")
+    print(
+       f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=2)} | BS 16 | W 1 | GPU {ngpus}")
+    print(
+        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=4)} | BS 16 | W 4 | GPU {ngpus}")
+    print(
+        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=8)} | BS 16 | W 8 | GPU {ngpus}")
     #test_generate_images_with_agent(20,4,100,2)
-    test_generate_images_and_answer_with_fbai_testbed(20,4,100,2)
+    #test_generate_images_and_answer_with_fbai_testbed(20,4,100,2)
