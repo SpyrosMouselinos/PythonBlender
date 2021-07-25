@@ -10,9 +10,11 @@ from agents.models import RandAgent, RL_Bandit_Agent
 from experiment_utils.constants import SPLIT_, OUTPUT_IMAGE_DIR_, OUTPUT_SCENE_DIR_, OUTPUT_SCENE_FILE_, \
     OUTPUT_QUESTION_FILE_, UP_TO_HERE_
 from experiment_utils.helpers import render_image, make_questions, extract_features, load_resnet_backbone, \
-    initialize_paths
-from generation.my_run_model import load_cnn_sa, load_iep, inference_with_iep, inference_with_cnn_sa
+    initialize_paths, make_questions_stateful
+from generation.fbai_testbed import load_cnn_sa, load_iep, load_film, inference_with_iep, inference_with_cnn_sa, \
+    inference_with_film
 
+from generation.rn_testbed.test import load_model, load_encoders
 warnings.filterwarnings("ignore", category=UserWarning)
 random.seed(666)
 np.random.seed(666)
@@ -75,10 +77,11 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
 
     cnn_sa = load_cnn_sa(f'{UP_TO_HERE_}/models/CLEVR/cnn_lstm_sa_mlp.pt')
     iep = load_iep(f'{UP_TO_HERE_}/models/CLEVR/program_generator_700k.pt', f'{UP_TO_HERE_}/models/CLEVR/execution_engine_700k_strong.pt')
-    # film = load_film('../models/CLEVR/film.pt', '../models/CLEVR/film.pt'
+    film = load_film(f'{UP_TO_HERE_}/models/CLEVR/film.pt', f'{UP_TO_HERE_}/models/CLEVR/film.pt')
 
     global_accuracy_sa = []
     global_accuracy_iep = []
+    global_accuracy_film = []
     global_agent_rewards = []
     global_generation_success_rate = 0
 
@@ -121,15 +124,16 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
 
         actions = np.array(actions)[np.where(action_mask == 1)[0]]
         if len(correct_images) > 0:
-            generator = make_questions(input_scene_file=None,
+            generator = make_questions_stateful(input_scene_file=f'{UP_TO_HERE_}/official/CLEVR_v1.0/scenes/CLEVR_val_scenes.json',
                                        word_replace_dict={'True': 'yes', 'False': 'no'},
                                        output_questions_file=f'{UP_TO_HERE_}/official/CLEVR_v1.0/questions/CLEVR_val_questions.json',
                                        mock=True, mock_name='Rendered')
             score_sa = 0
             score_iep = 0
+            score_film = 0
             examples = 0
             rewards = []
-            for i, q, a in generator():
+            for i, q, a, s in generator():
                 agent_reward = 0
                 try:
                     feats = extract_features(i, cnn, dtype=torch.cuda.FloatTensor)
@@ -153,7 +157,17 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
                                                  use_gpu=1,
                                                  external=True,
                                                  batch_size=1, model=iep)
-                for idx, (answer_sa, answer_iep, correct_answer) in enumerate(zip(answers_sa, answers_iep, a)):
+                answers_film = inference_with_film(questions=q,
+                                                   image=None,
+                                                   feats=feats,
+                                                   vocab_json='./models/CLEVR/vocab.json',
+                                                   input_questions_h5=None,
+                                                   input_features_h5=None,
+                                                   use_gpu=1,
+                                                   external=True,
+                                                   batch_size=1, model=film)
+
+                for idx, (answer_sa, answer_iep, answer_film, correct_answer) in enumerate(zip(answers_sa, answers_iep, answers_film, a)):
                     if str(answer_sa).lower() == str(correct_answer).lower():
                         score_sa += 1
                     else:
@@ -161,6 +175,11 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
 
                     if str(answer_iep).lower() == str(correct_answer).lower():
                         score_iep += 1
+                    else:
+                        agent_reward += 1
+
+                    if str(answer_film).lower() == str(correct_answer).lower():
+                        score_film += 1
                     else:
                         agent_reward += 1
 
@@ -173,12 +192,11 @@ def test_generate_images_and_answer_with_fbai_testbed(max_images=1000, batch_siz
                 print(f"Image Action Reward: {round(agent_reward, 3)}")
             print(f"Episode SA Accuracy: {round(score_sa / examples, 3)}")
             print(f"Episode IEP Accuracy: {round(score_iep / examples, 3)}")
+            print(f"Episode FiLM Accuracy: {round(score_film / examples, 3)}")
 
             global_accuracy_sa.append(score_sa / examples)
             global_accuracy_iep.append(score_iep / examples)
-
-        print(actions)
-        print(rewards)
+            global_accuracy_film.append(score_film / examples)
         agent.learn(actions, rewards)
         episodes += 1
     end_time = time.time()
@@ -205,11 +223,11 @@ if __name__ == '__main__':
 
     initialize_paths(output_scene_dir=OUTPUT_SCENE_DIR_, output_image_dir=OUTPUT_IMAGE_DIR_, up_to_here=UP_TO_HERE_)
     print("Results\n")
-    print(
-       f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=2)} | BS 16 | W 1 | GPU {ngpus}")
-    print(
-        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=4)} | BS 16 | W 4 | GPU {ngpus}")
-    print(
-        f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=8)} | BS 16 | W 8 | GPU {ngpus}")
+    # print(
+    #    f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=2)} | BS 16 | W 1 | GPU {ngpus}")
+    # print(
+    #     f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=4)} | BS 16 | W 4 | GPU {ngpus}")
+    # print(
+    #     f"{test_generate_images_with_agent(max_images=400, batch_size=16, max_episodes=10000, workers=8)} | BS 16 | W 8 | GPU {ngpus}")
     #test_generate_images_with_agent(20,4,100,2)
-    #test_generate_images_and_answer_with_fbai_testbed(20,4,100,2)
+    test_generate_images_and_answer_with_fbai_testbed(5,4,20,2)

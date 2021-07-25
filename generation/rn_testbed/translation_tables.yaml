@@ -1,0 +1,43 @@
+translation:
+    "cube": 1
+    "sphere": 2
+    "cylinder": 3
+    "bullet": 4
+    "butterfly": 5
+    "gray": 1
+    "red": 2
+    "blue": 3
+    "green": 4
+    "brown": 5
+    "purple": 6
+    "cyan": 7
+    "yellow": 8
+    "rubber": 1
+    "metal": 2
+    "large": 1
+    "small": 2
+
+reverse_translation_shape:
+    1: "cube"
+    2: "sphere"
+    3: "cylinder"
+    4: "bullet"
+    5: "butterfly"
+
+reverse_translation_color:
+    1: "gray"
+    2: "red"
+    3: "blue"
+    4: "green"
+    5: "brown"
+    6: "purple"
+    7: "cyan"
+    8: "yellow"
+
+reverse_translation_material:
+    1: "rubber"
+    2: "metal"
+
+reverse_translation_size:
+    1: "large"
+    2: "small"

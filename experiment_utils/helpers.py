@@ -11,10 +11,10 @@ from skimage.color import rgba2rgb
 from skimage.io import imread
 from skimage.transform import resize as imresize
 
-from experiment_utils.constants import find_platform_exec
 from experiment_utils.constants import MAYBE_LIST_FLOAT, MAYBE_LIST_INT, \
     NESTED_MAYBE_LIST_FLOAT, \
     NESTED_MAYBE_LIST_INT, OUTPUT_IMAGE_DIR_, OUTPUT_SCENE_DIR_, OUTPUT_SCENE_FILE_, UP_TO_HERE_
+from experiment_utils.constants import find_platform_exec
 
 
 def initialize_paths(output_image_dir: str, output_scene_dir: str, up_to_here: str) -> None:
@@ -336,7 +336,7 @@ def render_image(key_light_jitter=[1, 2, 3, 4, 5],
                  clean_before=False,
                  assemble_after=False,
                  ):
-    collected_locals = locals().items()
+    # collected_locals =
     if clean_before:
         targets = os.listdir(OUTPUT_IMAGE_DIR_)
         for target in targets:
@@ -353,7 +353,7 @@ def render_image(key_light_jitter=[1, 2, 3, 4, 5],
                     os.remove(OUTPUT_SCENE_DIR_ + '/' + target)
                 except:
                     pass
-    effective_args = distribute(**dict(collected_locals))
+    effective_args = distribute(**dict(locals().items()))
     cmds = [command_template(**effective_args[f]) for f in effective_args.keys()]
 
     args = [shlex.split(cmd) for cmd in cmds]
@@ -404,9 +404,6 @@ def load_resnet_backbone(dtype):
     cnn.type(dtype)
     cnn.eval()
     return cnn
-
-
-
 
 
 def extract_features(image, cnn, dtype):
@@ -464,7 +461,7 @@ def make_questions(input_scene_file,
                    mock_name=None,
                    mock_image_dir=None
                    ):
-    #TODO (Spyros): Change behaviour of single vs multiple scenes
+    # TODO (Spyros): Change behaviour of single vs multiple scenes
     if not mock:
         collected_locals = locals().items()
         collected_locals = dict(collected_locals)
@@ -515,4 +512,81 @@ def make_questions(input_scene_file,
             answers = pairs_to_yield[image]['answers']
             yield image, questions, answers
 
+    return one_shot_gen
+
+
+def make_questions_stateful(
+        input_scene_file,
+        output_questions_file,
+        templates_per_image=10,
+        instances_per_template=1,
+        start_idx=0,
+        word_replace_dict=None,
+        mock=True,
+        mock_name=None,
+        mock_image_dir=None
+):
+    if not mock:
+        collected_locals = locals().items()
+        collected_locals = dict(collected_locals)
+        _ = collected_locals.pop('mock')
+        _ = collected_locals.pop('mock_name')
+        cmd = question_template(**collected_locals)
+        arg = shlex.split(cmd)
+        proc = Popen(arg, stderr=PIPE)
+        out, err = proc.communicate()
+        if err == bytes(('').encode('utf-8')):
+            # print("Questions were generated succesfully!")
+            pass
+        else:
+            print(err)
+    with open(output_questions_file, 'r') as fin:
+        data = json.load(fin)
+
+    if input_scene_file is not None:
+        with open(input_scene_file, 'r') as fin:
+            data_scene = json.load(fin)
+
+    pairs_to_yield = {}
+
+    for idx in range(0, len(data['questions'])):
+        image = OUTPUT_IMAGE_DIR_ + '/' + data['questions'][idx]['image_filename']
+        id = data['questions'][idx]['image_filename'].split('_')[-1]
+        if mock_name is not None:
+            image = OUTPUT_IMAGE_DIR_ + '/' + 'CLEVR_' + mock_name + '_' + id
+        if mock_image_dir is not None:
+            if mock_name is not None:
+                image = mock_image_dir + '/' + 'CLEVR_' + mock_name + '_' + id
+            else:
+                image = mock_image_dir + '/' + data['questions'][idx]['image_filename']
+        if input_scene_file is not None:
+            scene_index = int(id.split('.png')[0])
+            scene = data_scene['scenes'][scene_index]
+
+        question = str(data['questions'][idx]['question'])
+        answer = str(data['questions'][idx]['answer'])
+        if word_replace_dict is None:
+            pass
+        else:
+            for word, replacement in word_replace_dict.items():
+                question = question.replace(word, replacement)
+                answer = answer.replace(word, replacement)
+        if image in pairs_to_yield:
+            pairs_to_yield[image]['questions'].append(question)
+            pairs_to_yield[image]['answers'].append(answer)
+        else:
+            if input_scene_file is not None:
+                pairs_to_yield.update({image: {'questions': [question], 'answers': [answer], 'scene': scene}})
+            else:
+                pairs_to_yield.update({image: {'questions': [question], 'answers': [answer]}})
+
+    def one_shot_gen():
+        for image in pairs_to_yield:
+            questions = pairs_to_yield[image]['questions']
+            answers = pairs_to_yield[image]['answers']
+            if input_scene_file is not None:
+                scene = pairs_to_yield[image]['scene']
+                yield image, questions, answers, scene
+            else:
+                yield image, questions, answers
     return one_shot_gen
