@@ -523,7 +523,7 @@ def add_random_objects(current_item, scene_struct, args, camera, old_behaviour=F
     return objects, blender_objects
 
 
-def compute_all_relationships(scene_struct, eps=0.2, old_behaviour=False):
+def compute_all_relationships(scene_struct, eps=0.2):
     """
     Computes relationships between all pairs of objects in the scene.
 
